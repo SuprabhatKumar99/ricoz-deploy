@@ -28,7 +28,7 @@ import {
 export class ApiService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = (() => {
-    const configured = localStorage.getItem("rk_api_url")?.replace(/\\/$/, "");
+    const configured = localStorage.getItem("rk_api_url")?.replace(/\/$/, "");
     if (configured) return configured;
 
     // Local development talks directly to Spring Boot.
