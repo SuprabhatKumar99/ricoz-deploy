@@ -1,17 +1,10 @@
 services:
 
-  # --------------------------------------------------
-  # Redis / Render Key Value
-  # --------------------------------------------------
   - type: keyvalue
     name: ricozknow-redis
     plan: free
     ipAllowList: []
 
-
-  # --------------------------------------------------
-  # Backend API
-  # --------------------------------------------------
   - type: web
     name: ricozknow-api
     runtime: docker
@@ -22,9 +15,6 @@ services:
 
     envVars:
 
-      # -------------------------------
-      # PostgreSQL
-      # -------------------------------
       - key: SPRING_DATASOURCE_URL
         fromDatabase:
           name: ricozknow-db
@@ -40,10 +30,6 @@ services:
           name: ricozknow-db
           property: password
 
-
-      # -------------------------------
-      # Redis
-      # -------------------------------
       - key: REDIS_HOST
         fromService:
           type: keyvalue
@@ -56,34 +42,18 @@ services:
           name: ricozknow-redis
           property: port
 
-
-      # -------------------------------
-      # JWT / Security
-      # -------------------------------
       - key: JWT_SECRET
         generateValue: true
 
       - key: REFRESH_COOKIE_SECURE
         value: "true"
 
-
-      # -------------------------------
-      # CORS
-      # -------------------------------
       - key: CORS_ALLOWED_ORIGINS
         value: https://ricozknow-frontend.onrender.com
 
-
-      # -------------------------------
-      # Multi-tenancy
-      # -------------------------------
       - key: TENANT_BASE_DOMAIN
         value: ricozknow.com
 
-
-      # -------------------------------
-      # OpenSearch / Aiven
-      # -------------------------------
       - key: OPENSEARCH_HOST
         sync: false
 
@@ -99,10 +69,6 @@ services:
       - key: OPENSEARCH_PASSWORD
         sync: false
 
-
-      # -------------------------------
-      # Cloudflare R2 / S3
-      # -------------------------------
       - key: S3_ENDPOINT
         sync: false
 
@@ -118,10 +84,6 @@ services:
       - key: S3_REGION
         value: us-east-1
 
-
-  # --------------------------------------------------
-  # Angular Frontend
-  # --------------------------------------------------
   - type: web
     name: ricozknow-frontend
     runtime: docker
@@ -130,10 +92,6 @@ services:
     plan: free
     healthCheckPath: /health
 
-
-# ----------------------------------------------------
-# PostgreSQL
-# ----------------------------------------------------
 databases:
 
   - name: ricozknow-db
