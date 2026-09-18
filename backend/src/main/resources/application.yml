@@ -3,9 +3,9 @@ spring:
     name: ricozknow-backend
 
   datasource:
-    url: jdbc:postgresql://${DB_HOST:rz-postgres}:${DB_PORT:5432}/${DB_NAME:ricozknow}
-    username: ${DB_USER:ricozknow}
-    password: ${DB_PASSWORD:ricozknow}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/ricozknow}
+    username: ${SPRING_DATASOURCE_USERNAME:ricozknow}
+    password: ${SPRING_DATASOURCE_PASSWORD:ricozknow}
     hikari:
       maximum-pool-size: 10
 
