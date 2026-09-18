@@ -1,0 +1,196 @@
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: rz-postgres
+    environment:
+      POSTGRES_DB: ricozknow
+      POSTGRES_USER: ricozknow
+      POSTGRES_PASSWORD: ricozknow
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ricozknow"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: rz-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  opensearch:
+    image: opensearchproject/opensearch:2.15.0
+    container_name: rz-opensearch
+    environment:
+      - discovery.type=single-node
+      - DISABLE_SECURITY_PLUGIN=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  minio:
+    image: quay.io/minio/minio:latest
+    container_name: rz-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: rz-backend
+    ports:
+      - "8080:8080"
+    environment:
+      DB_URL: jdbc:postgresql://rz-postgres:5432/ricozknow
+      DB_USERNAME: ricozknow
+      DB_PASSWORD: ricozknow
+      OTEL_METRICS_URL: ${OTEL_METRICS_URL}
+      OTEL_METRICS_STEP: 30s
+      OTEL_TRACING_ENDPOINT: ${OTEL_TRACING_ENDPOINT}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      otel-collector:
+        condition: service_started
+    networks:
+      - default
+      - observability
+    restart: on-failure
+
+
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    container_name: ricozknow-prometheus
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/observability/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=15d
+      - --web.enable-lifecycle
+    volumes:
+      - ./observability/prometheus/prometheus.yml:/etc/observability/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks: [observability]
+
+  loki:
+    image: grafana/loki:3.5.0
+    container_name: ricozknow-loki
+    restart: unless-stopped
+    command: -config.file=/etc/observability/loki/loki.yml
+    volumes:
+      - ./observability/loki/loki.yml:/etc/observability/loki/loki.yml:ro
+      - loki-data:/loki
+    ports:
+      - "3100:3100"
+    networks: [observability]
+
+  tempo:
+    image: grafana/tempo:2.8.2
+    container_name: ricozknow-tempo
+    restart: unless-stopped
+    command: ["-config.file=/etc/observability/tempo/tempo.yml"]
+    volumes:
+      - ./observability/tempo/tempo.yml:/etc/observability/tempo/tempo.yml:ro
+      - tempo-data:/var/tempo
+    ports:
+      - "3200:3200"
+      - "4317:4317"
+      - "4318:4318"
+    networks: [observability]
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.135.0
+    environment:
+      OTEL_ENVIRONMENT: ${OTEL_ENVIRONMENT:-local}
+    container_name: ricozknow-otel-collector
+    restart: unless-stopped
+    command: ["--config=/etc/observability/otelcol-contrib/config.yml"]
+    volumes:
+      - ./observability/otel-collector/config.yml:/etc/observability/otelcol-contrib/config.yml:ro
+    ports:
+      - "4319:4317"
+      - "4320:4318"
+      - "8889:8889"
+    depends_on: [prometheus, tempo]
+    networks: [observability]
+
+  alloy:
+    image: grafana/alloy:v1.11.0
+    container_name: ricozknow-alloy
+    restart: unless-stopped
+    command: run /etc/observability/alloy/config.alloy
+    volumes:
+      - ./observability/alloy/config.alloy:/etc/observability/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    depends_on: [loki]
+    networks: [observability]
+
+  grafana:
+    image: grafana/grafana:12.1.1
+    container_name: ricozknow-grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/observability/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "3000:3000"
+    depends_on: [prometheus, loki, tempo]
+    networks: [observability]
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: rz-frontend
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:4200:80"
+    depends_on:
+      backend:
+        condition: service_started
+
+volumes:
+  postgres-data:
+  minio-data:
+  prometheus-data:
+  loki-data:
+  tempo-data:
+  grafana-data:
+
+
+networks:
+  observability:
+    name: ricozknow-observability

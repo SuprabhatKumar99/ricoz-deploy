@@ -1,0 +1,22 @@
+{
+  "annotations": {"list": []},
+  "editable": true,
+  "graphTooltip": 1,
+  "panels": [
+    {"type":"stat","title":"Requests / sec","gridPos":{"h":4,"w":6,"x":0,"y":0},"targets":[{"expr":"sum(rate(http_server_requests_seconds_count{application=\"ricozknow-backend\"}[5m]))","refId":"A"}]},
+    {"type":"stat","title":"5xx / sec","gridPos":{"h":4,"w":6,"x":6,"y":0},"targets":[{"expr":"sum(rate(http_server_requests_seconds_count{application=\"ricozknow-backend\",status=~\"5..\"}[5m]))","refId":"A"}]},
+    {"type":"stat","title":"JVM Heap Used","gridPos":{"h":4,"w":6,"x":12,"y":0},"targets":[{"expr":"sum(jvm_memory_used_bytes{application=\"ricozknow-backend\",area=\"heap\"})","refId":"A"}]},
+    {"type":"stat","title":"Service Errors / sec","gridPos":{"h":4,"w":6,"x":18,"y":0},"targets":[{"expr":"sum(rate(ricozknow_service_errors_total[5m]))","refId":"A"}]},
+    {"type":"timeseries","title":"HTTP latency p95","gridPos":{"h":8,"w":12,"x":0,"y":4},"targets":[{"expr":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{application=\"ricozknow-backend\"}[5m])))","refId":"A"}]},
+    {"type":"timeseries","title":"Service latency p95","gridPos":{"h":8,"w":12,"x":12,"y":4},"targets":[{"expr":"histogram_quantile(0.95, sum by (le,service) (rate(ricozknow_service_calls_seconds_bucket[5m])))","refId":"A"}]},
+    {"type":"logs","title":"Application logs","gridPos":{"h":8,"w":24,"x":0,"y":12},"targets":[{"expr":"{job=\"docker\",container=~\".*ricozknow.*\"}","refId":"A"}]}
+  ],
+  "schemaVersion": 39,
+  "style": "dark",
+  "tags": ["ricozknow","observability"],
+  "templating": {"list": []},
+  "time": {"from":"now-1h","to":"now"},
+  "title": "RicozKnow - Overview",
+  "uid": "ricozknow-overview",
+  "version": 1
+}

@@ -1,0 +1,146 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-50: #eff6ff;
+  --color-brand-100: #dbeafe;
+  --color-brand-500: #3b82f6;
+  --color-brand-600: #2563eb;
+  --color-brand-700: #1d4ed8;
+}
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #f8fafc;
+  color: #0f172a;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.rk-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
+}
+
+.rk-btn {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 10px;
+  padding: 0 14px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: 150ms ease;
+}
+
+.rk-btn:focus-visible,
+.rk-input:focus-visible,
+.rk-select:focus-visible,
+.rk-textarea:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+.rk-btn-primary {
+  background: #0f172a;
+  color: #fff;
+}
+
+.rk-btn-primary:hover:not(:disabled) {
+  background: #334155;
+}
+
+.rk-btn-secondary {
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #334155;
+}
+
+.rk-btn-secondary:hover:not(:disabled) {
+  background: #f8fafc;
+}
+
+.rk-btn-danger {
+  background: #e11d48;
+  color: #fff;
+}
+
+.rk-btn-danger:hover:not(:disabled) {
+  background: #be123c;
+}
+
+.rk-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.rk-input,
+.rk-select,
+.rk-textarea {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #fff;
+  padding: 10px 12px;
+  color: #0f172a;
+}
+
+.rk-label {
+  display: block;
+  margin-bottom: 6px;
+  color: #334155;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.rk-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 4px 9px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.rk-skeleton {
+  border-radius: 8px;
+  background: #e2e8f0;
+  animation: rk-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes rk-pulse {
+  50% { opacity: 0.55; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

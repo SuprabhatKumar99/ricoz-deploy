@@ -1,0 +1,23 @@
+import { inject } from "@angular/core";
+import { CanActivateFn, Router } from "@angular/router";
+import { AuthService } from "./auth.service";
+
+export const authGuard: CanActivateFn = () => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+
+  return auth.token
+    ? true
+    : router.createUrlTree(["/login"]);
+};
+
+export function roleGuard(roles: string[]): CanActivateFn {
+  return () => {
+    const auth = inject(AuthService);
+    const router = inject(Router);
+
+    return auth.hasAnyRole(roles)
+      ? true
+      : router.createUrlTree(["/dashboard"]);
+  };
+}

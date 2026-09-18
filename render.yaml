@@ -1,0 +1,85 @@
+services:
+- type: keyvalue
+  name: ricozknow-redis
+  plan: free
+  ipAllowList: []
+- type: web
+  name: ricozknow-api
+  runtime: docker
+  dockerfilePath: ./backend/Dockerfile
+  dockerContext: ./backend
+  plan: free
+  healthCheckPath: /actuator/health
+  envVars:
+  - key: DB_HOST
+    fromDatabase:
+      name: ricozknow-db
+      property: host
+  - key: DB_PORT
+    fromDatabase:
+      name: ricozknow-db
+      property: port
+  - key: DB_NAME
+    fromDatabase:
+      name: ricozknow-db
+      property: database
+  - key: DB_USER
+    fromDatabase:
+      name: ricozknow-db
+      property: user
+  - key: DB_PASSWORD
+    fromDatabase:
+      name: ricozknow-db
+      property: password
+  - key: REDIS_HOST
+    fromService:
+      type: keyvalue
+      name: ricozknow-redis
+      property: host
+  - key: REDIS_PORT
+    fromService:
+      type: keyvalue
+      name: ricozknow-redis
+      property: port
+  - key: JWT_SECRET
+    generateValue: true
+  - key: REFRESH_COOKIE_SECURE
+    value: 'true'
+  - key: CORS_ALLOWED_ORIGINS
+    value: https://ricozknow-frontend.onrender.com
+  - key: TENANT_BASE_DOMAIN
+    value: ricozknow.com
+  - key: OPENSEARCH_HOST
+    sync: false
+  - key: OPENSEARCH_PORT
+    value: '26203'
+  - key: OPENSEARCH_SCHEME
+    value: https
+  - key: OPENSEARCH_USERNAME
+    sync: false
+  - key: OPENSEARCH_PASSWORD
+    sync: false
+  - key: S3_ENDPOINT
+    sync: false
+  - key: S3_BUCKET
+    value: ricozknow-assets
+  - key: S3_ACCESS_KEY
+    sync: false
+  - key: S3_SECRET_KEY
+    sync: false
+  - key: S3_REGION
+    value: us-east-1
+- type: web
+  name: ricozknow-frontend
+  runtime: docker
+  dockerfilePath: ./frontend/Dockerfile
+  dockerContext: ./frontend
+  plan: free
+  healthCheckPath: /health
+databases:
+- name: ricozknow-db
+  databaseName: ricozknow
+  user: ricozknow
+  plan: free
+  region: singapore
+  postgresMajorVersion: '16'

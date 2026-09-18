@@ -1,0 +1,27 @@
+<configuration>
+    <springProperty scope="context" name="serviceName" source="spring.application.name" defaultValue="ricozknow-backend"/>
+    <springProperty scope="context" name="environment" source="spring.profiles.active" defaultValue="default"/>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <timestamp><timeZone>UTC</timeZone></timestamp>
+                <logLevel/>
+                <threadName/>
+                <loggerName/>
+                <message/>
+                <mdc/>
+                <globalCustomFields>{"service":"${serviceName}","environment":"${environment}"}</globalCustomFields>
+                <stackTrace/>
+            </providers>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
+    <logger name="com.ricozknow" level="INFO"/>
+    <logger name="org.springframework.security" level="INFO"/>
+    <logger name="software.amazon.awssdk" level="INFO"/>
+</configuration>
